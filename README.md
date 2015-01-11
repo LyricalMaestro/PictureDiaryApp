@@ -1,0 +1,4 @@
+# PictureDiaryApp
+絵日記アプリ。Githubを使った開発+Lollipopアプリ開発の練習用プロジェクト。
+
+AndroidStudioのプロジェクトをそのままpushしてます。
