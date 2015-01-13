@@ -4,5 +4,6 @@
     <string name="app_name">PictureDiaryApp</string>
     <string name="hello_world">Hello world!</string>
     <string name="action_settings">Settings</string>
+    <string name="title_activity_diary">DiaryActivity</string>
 
 </resources>
