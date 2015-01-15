@@ -18,7 +18,8 @@
         </activity>
         <activity
             android:name=".DiaryActivity"
-            android:label="@string/title_activity_diary" >
+            android:label="@string/title_activity_diary"
+            android:exported="true">
         </activity>
     </application>
 
