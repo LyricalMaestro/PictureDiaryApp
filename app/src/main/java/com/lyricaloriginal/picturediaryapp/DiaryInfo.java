@@ -3,7 +3,7 @@ package com.lyricaloriginal.picturediaryapp;
 import java.util.Date;
 
 /**
- * Created by shinichitanimoto on 15/01/11.
+ * Created by LyricalMaestro on 15/01/11.
  */
 public class DiaryInfo {
     private Date _date;

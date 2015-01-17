@@ -9,12 +9,21 @@
     android:paddingTop="@dimen/activity_vertical_margin"
     tools:context="com.lyricaloriginal.picturediaryapp.DialyActivity">
 
-    <ImageView
-        android:id="@+id/imageView"
-        android:scaleType="centerInside"
+    <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="4" />
+        android:padding="8dp"
+        android:layout_weight="4"
+        android:background="@android:color/darker_gray">
+
+        <ImageView
+            android:id="@+id/imageView"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@android:color/white"
+            android:scaleType="fitCenter" />
+
+    </FrameLayout>
 
     <TextView
         android:id="@+id/dateText"
@@ -27,17 +36,18 @@
     <EditText
         android:id="@+id/titleEditText"
         android:layout_width="match_parent"
-        android:maxLength="40"
         android:layout_height="wrap_content"
         android:layout_marginTop="4dp"
+        android:maxLength="30"
+        android:hint="タイトル"
         android:textSize="32sp" />
 
-    <EditText
+    <com.lyricaloriginal.picturediaryapp.LinedEditText
         android:id="@+id/noteText"
-        android:gravity="top"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_marginTop="4dp"
         android:layout_weight="6"
-        android:textSize="24sp"/>
+        android:gravity="top"
+        android:textSize="24sp" />
 </LinearLayout>
