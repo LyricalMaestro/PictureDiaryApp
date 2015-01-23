@@ -4,14 +4,19 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.PersistableBundle;
 import android.provider.MediaStore;
 import android.support.v7.app.ActionBarActivity;
+import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageView;
+import android.widget.TextView;
 
 import java.io.File;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Date;
 
 /**
@@ -19,6 +24,9 @@ import java.util.Date;
  */
 public class DiaryActivity extends ActionBarActivity {
 
+    /**
+     * 絵日記オブジェクト。絵日記のデータを保持するためのクラス。
+     */
     protected final class DiaryModel {
         protected String title;
         protected Date date;
@@ -54,9 +62,24 @@ public class DiaryActivity extends ActionBarActivity {
             }
         });
 
+        initToolbar();
+
         _targetId = getIntent().getIntExtra(EXTRA_ID, NEW_DIARY_ID);
-        if (savedInstanceState == null && 0 < _targetId) {
-            loadDiary(_targetId);
+        if (savedInstanceState == null) {
+            if (0 < _targetId) {
+                loadDiary(_targetId);
+            } else {
+                //  新規作成時は日付として「今日の日付」で補填する
+                Date now = new Date(System.currentTimeMillis());
+                SimpleDateFormat format = new SimpleDateFormat("yyyy年MM月dd日");
+                String date = format.format(now);
+                TextView dateText = (TextView) findViewById(R.id.dateText);
+                dateText.setText(date);
+            }
+        } else {
+            String date = savedInstanceState.getString("DATE");
+            TextView dateText = (TextView) findViewById(R.id.dateText);
+            dateText.setText(date);
         }
     }
 
@@ -74,22 +97,30 @@ public class DiaryActivity extends ActionBarActivity {
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.menu_dialy, menu);
-        return true;
+        MenuItem menuItem = menu.add("保存");
+        menuItem.setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS);
+        menuItem.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
+            @Override
+            public boolean onMenuItemClick(MenuItem item) {
+                return true;
+            }
+        });
+        return super.onCreateOptionsMenu(menu);
     }
 
     @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        int id = item.getItemId();
-
-        if (id == R.id.action_settings) {
-            return true;
-        }
-
-        return super.onOptionsItemSelected(item);
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        TextView dateText = (TextView) findViewById(R.id.dateText);
+        outState.putString("DATE", dateText.getText().toString());
     }
 
     protected DiaryModel loadDiary(int targetId) {
         return null;
+    }
+
+    private void initToolbar() {
+        Toolbar toolBar = (Toolbar) findViewById(R.id.tool_bar);
+        setSupportActionBar(toolBar);
     }
 }
