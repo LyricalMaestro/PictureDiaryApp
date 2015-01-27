@@ -11,10 +11,13 @@ import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.io.File;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
@@ -102,6 +105,23 @@ public class DiaryActivity extends ActionBarActivity {
         menuItem.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
             @Override
             public boolean onMenuItemClick(MenuItem item) {
+                DiaryModel model = new DiaryModel();
+
+                EditText titleView = (EditText) findViewById(R.id.titleEditText);
+                model.title = titleView.getEditableText().toString();
+
+                TextView dateText = (TextView) findViewById(R.id.dateText);
+                SimpleDateFormat format = new SimpleDateFormat("yyyy年MM月dd日");
+                try {
+                    model.date = format.parse(dateText.getText().toString());
+                } catch (ParseException e) {
+                    e.printStackTrace();
+                }
+
+                EditText noteText = (EditText) findViewById(R.id.noteText);
+                model.note = noteText.getEditableText().toString();
+
+                saveDiary(model);
                 return true;
             }
         });
@@ -117,6 +137,16 @@ public class DiaryActivity extends ActionBarActivity {
 
     protected DiaryModel loadDiary(int targetId) {
         return null;
+    }
+
+    protected void saveDiary(DiaryModel model) {
+        if (_targetId < 0) {
+            boolean result = DiaryDbAccessor.insert(this, model);
+            if (result) {
+                Toast.makeText(this, "保存成功！！", Toast.LENGTH_SHORT).show();
+                finish();
+            }
+        }
     }
 
     private void initToolbar() {

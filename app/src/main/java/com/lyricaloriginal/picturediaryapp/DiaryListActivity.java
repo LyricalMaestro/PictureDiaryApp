@@ -12,6 +12,7 @@ import android.widget.TextView;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.List;
 import java.util.Locale;
 
 /**
@@ -31,12 +32,8 @@ public class DiaryListActivity extends ActionBarActivity {
     }
 
     private DiaryInfo[] createDiaryInfos() {
-        return new DiaryInfo[]{
-                new DiaryInfo(new Date(), "テスト"),
-                new DiaryInfo(new Date(), "テスト2"),
-                new DiaryInfo(new Date(), "今日は何の避難の日"),
-                new DiaryInfo(new Date(), "")
-        };
+        List<DiaryInfo> diaryInfos = DiaryDbAccessor.loadDiaryInfoList(this);
+        return diaryInfos.toArray(new DiaryInfo[0]);
     }
 
     class DiaryListAdapter extends BaseAdapter {
