@@ -7,21 +7,37 @@ import android.database.Cursor;
  */
 public class CursorUtils {
 
-    private CursorUtils(){
+    private CursorUtils() {
 
     }
 
-    public static String getString(Cursor cr, String colName){
+    /**
+     * 指定したカラムに対応する文字列値を取得します。
+     *
+     * @param cr      カーソルオブジェクト
+     * @param colName カラム名
+     * @return 文字列値。カーソル内に指定したカラムが存在しない場合はnull。
+     */
+    public static String getString(Cursor cr, String colName) {
         return getString(cr, colName, null);
     }
 
-    public static String getString(Cursor cr, String colName, String defVal){
-        if(cr == null){
+    /**
+     * 指定したカラムに対応する文字列値を取得します。
+     * カーソル内に指定したカラムが存在しない場合は「指定したデフォルト値」を返します。
+     *
+     * @param cr      カーソルオブジェクト
+     * @param colName カラム名
+     * @param defVal  デフォルト値
+     * @return 文字列値。
+     */
+    public static String getString(Cursor cr, String colName, String defVal) {
+        if (cr == null) {
             return defVal;
         }
 
         int index = cr.getColumnIndex(colName);
-        if(index == -1){
+        if (index == -1) {
             return defVal;
         }
 

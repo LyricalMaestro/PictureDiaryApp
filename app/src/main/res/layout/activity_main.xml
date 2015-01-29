@@ -1,4 +1,5 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:materialdesign="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -13,4 +14,15 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_centerInParent="true" />
+
+    <com.gc.materialdesign.views.ButtonFloat
+        android:id="@+id/buttonFloat"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentRight="true"
+        android:layout_marginRight="24dp"
+        android:background="#1E88E5"
+        materialdesign:animate="false"
+        materialdesign:iconDrawable="@drawable/ic_launcher" />
 </RelativeLayout>

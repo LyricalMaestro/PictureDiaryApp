@@ -144,6 +144,7 @@ public class DiaryActivity extends ActionBarActivity {
             boolean result = DiaryDbAccessor.insert(this, model);
             if (result) {
                 Toast.makeText(this, "保存成功！！", Toast.LENGTH_SHORT).show();
+                setResult(RESULT_OK);
                 finish();
             }
         }

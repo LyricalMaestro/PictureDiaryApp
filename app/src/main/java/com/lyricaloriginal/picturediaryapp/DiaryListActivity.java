@@ -1,7 +1,9 @@
 package com.lyricaloriginal.picturediaryapp;
 
 import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.v7.app.ActionBarActivity;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -9,6 +11,9 @@ import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
+
+import com.gc.materialdesign.views.ButtonFloat;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -25,6 +30,28 @@ public class DiaryListActivity extends ActionBarActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        View buttonFloat = findViewById(R.id.buttonFloat);
+        buttonFloat.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(DiaryListActivity.this, DiaryActivity.class);
+                startActivityForResult(intent, 0);
+            }
+        });
+
+        loadDiaryInfo();
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        if(requestCode == 0 && resultCode == RESULT_OK){
+            loadDiaryInfo();
+        }
+    }
+
+    private void loadDiaryInfo(){
         DiaryInfo[] diaryInfos = createDiaryInfos();
 
         ListView listView = (ListView) findViewById(android.R.id.list);
