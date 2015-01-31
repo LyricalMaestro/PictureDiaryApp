@@ -144,13 +144,17 @@ public class DiaryActivity extends ActionBarActivity {
     }
 
     protected void saveDiary(DiaryModel model) {
+        boolean result = false;
         if (_targetId < 0) {
-            boolean result = DiaryDbAccessor.insert(this, model);
-            if (result) {
-                Toast.makeText(this, "保存成功！！", Toast.LENGTH_SHORT).show();
-                setResult(RESULT_OK);
-                finish();
-            }
+            result = DiaryDbAccessor.insert(this, model);
+        } else {
+            result = DiaryDbAccessor.update(this, _targetId, model);
+        }
+
+        if (result) {
+            Toast.makeText(this, "保存成功！！", Toast.LENGTH_SHORT).show();
+            setResult(RESULT_OK);
+            finish();
         }
     }
 

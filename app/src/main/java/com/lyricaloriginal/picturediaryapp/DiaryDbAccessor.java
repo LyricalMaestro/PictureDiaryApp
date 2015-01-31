@@ -52,6 +52,40 @@ public class DiaryDbAccessor {
     }
 
     /**
+     * 指定したIDの絵日記データの更新を行います。
+     *
+     * @param context
+     * @param id
+     * @param model
+     * @return
+     */
+    public static boolean update(Context context, int id, DiaryModel model) {
+        long result = -1;
+        DiaryDbOpenHelper helper = new DiaryDbOpenHelper(context);
+        SQLiteDatabase db = null;
+        try {
+            db = helper.getWritableDatabase();
+            db.beginTransaction();
+
+            SimpleDateFormat format = new SimpleDateFormat("yyyyMMdd");
+            ContentValues cv = new ContentValues();
+            cv.put("TITLE", model.title);
+            cv.put("DATE", format.format(model.date));
+            cv.put("NOTE", model.note);
+            result = db.update("T_DIARY", cv, "ID=" + id, null);
+            db.setTransactionSuccessful();
+        } finally {
+            if (db != null) {
+                db.endTransaction();
+                db.close();
+                db = null;
+            }
+        }
+        return 0 <= result;
+
+    }
+
+    /**
      * 登録されている全絵日記の基本情報を取得します。
      *
      * @param context
