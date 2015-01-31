@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.v7.app.ActionBarActivity;
+import android.support.v7.widget.Toolbar;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -39,6 +40,7 @@ public class DiaryListActivity extends ActionBarActivity {
             }
         });
 
+        initToolbar();
         loadDiaryInfo();
     }
 
@@ -49,6 +51,11 @@ public class DiaryListActivity extends ActionBarActivity {
         if(requestCode == 0 && resultCode == RESULT_OK){
             loadDiaryInfo();
         }
+    }
+
+    private void initToolbar() {
+        Toolbar toolBar = (Toolbar) findViewById(R.id.tool_bar);
+        setSupportActionBar(toolBar);
     }
 
     private void loadDiaryInfo(){
