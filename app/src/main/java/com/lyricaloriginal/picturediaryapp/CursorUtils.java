@@ -43,4 +43,21 @@ public class CursorUtils {
 
         return cr.getString(index);
     }
+
+    public static Integer getInt(Cursor cr, String colName) {
+        return getInt(cr, colName, null);
+    }
+
+    public static Integer getInt(Cursor cr, String colName, Integer defVal) {
+        if (cr == null) {
+            return defVal;
+        }
+
+        int index = cr.getColumnIndex(colName);
+        if (index == -1) {
+            return defVal;
+        }
+
+        return cr.getInt(index);
+    }
 }

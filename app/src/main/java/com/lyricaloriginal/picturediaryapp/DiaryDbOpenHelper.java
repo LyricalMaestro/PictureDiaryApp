@@ -16,7 +16,15 @@ class DiaryDbOpenHelper extends SQLiteOpenHelper {
 
     @Override
     public void onCreate(SQLiteDatabase db) {
-        db.execSQL("CREATE TABLE T_DIARY (TITLE nchar(40), DATE nchar(8), NOTE TEXT, PICTURE_FILE TEXT)");
+        StringBuilder sb = new StringBuilder();
+        sb.append("CREATE TABLE T_DIARY (");
+        sb.append("ID INTEGER PRIMARY KEY AUTOINCREMENT,");
+        sb.append("TITLE nchar(40),");
+        sb.append("DATE nchar(8),");
+        sb.append("NOTE TEXT,");
+        sb.append("PICTURE_FILE TEXT);");
+
+        db.execSQL(sb.toString());
     }
 
     @Override

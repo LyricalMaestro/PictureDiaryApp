@@ -9,6 +9,7 @@ import android.support.v7.widget.Toolbar;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.BaseAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
@@ -41,6 +42,19 @@ public class DiaryListActivity extends ActionBarActivity {
         });
 
         initToolbar();
+
+        ListView listView = (ListView) findViewById(android.R.id.list);
+        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                DiaryInfo dInfo = (DiaryInfo) parent.getAdapter().getItem(position);
+                Intent intent = new Intent(DiaryListActivity.this, DiaryActivity.class);
+                intent.putExtra(DiaryActivity.EXTRA_ID, dInfo.getId());
+                startActivityForResult(intent, 0);
+            }
+        });
+
+
         loadDiaryInfo();
     }
 
@@ -48,7 +62,7 @@ public class DiaryListActivity extends ActionBarActivity {
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
-        if(requestCode == 0 && resultCode == RESULT_OK){
+        if (requestCode == 0 && resultCode == RESULT_OK) {
             loadDiaryInfo();
         }
     }
@@ -58,7 +72,7 @@ public class DiaryListActivity extends ActionBarActivity {
         setSupportActionBar(toolBar);
     }
 
-    private void loadDiaryInfo(){
+    private void loadDiaryInfo() {
         DiaryInfo[] diaryInfos = createDiaryInfos();
 
         ListView listView = (ListView) findViewById(android.R.id.list);
@@ -107,7 +121,7 @@ public class DiaryListActivity extends ActionBarActivity {
         @Override
         public View getView(int position, View convertView, ViewGroup parent) {
             if (convertView == null) {
-                convertView = _inflater.inflate(R.layout.diary_info_item,null);
+                convertView = _inflater.inflate(R.layout.diary_info_item, null);
             }
 
             DiaryInfo info = _diaryInfos[position];

@@ -26,7 +26,7 @@ public class DiaryDbAccessor {
      * @param model
      * @return
      */
-    public static boolean insert(Context context, DiaryActivity.DiaryModel model) {
+    public static boolean insert(Context context, DiaryModel model) {
         long result = -1;
         DiaryDbOpenHelper helper = new DiaryDbOpenHelper(context);
         SQLiteDatabase db = null;
@@ -51,7 +51,13 @@ public class DiaryDbAccessor {
         return 0 <= result;
     }
 
-    public static List<DiaryInfo> loadDiaryInfoList(Context context){
+    /**
+     * 登録されている全絵日記の基本情報を取得します。
+     *
+     * @param context
+     * @return
+     */
+    public static List<DiaryInfo> loadDiaryInfoList(Context context) {
         DiaryDbOpenHelper helper = new DiaryDbOpenHelper(context);
         SimpleDateFormat format = new SimpleDateFormat("yyyyMMdd");
         List<DiaryInfo> diaryInfos = new ArrayList<DiaryInfo>();
@@ -60,21 +66,22 @@ public class DiaryDbAccessor {
         Cursor cr = null;
         try {
             db = helper.getReadableDatabase();
-            cr = db.query("T_DIARY",null, null, null ,null, null, "DATE");
-            if(cr.moveToFirst()){
-                do{
+            cr = db.query("T_DIARY", null, null, null, null, null, "DATE");
+            if (cr.moveToFirst()) {
+                do {
+                    int id = CursorUtils.getInt(cr, "ID");
                     Date date = null;
-                    try{
+                    try {
                         date = format.parse(CursorUtils.getString(cr, "DATE"));
-                    }catch(ParseException ex){
+                    } catch (ParseException ex) {
                     }
                     String title = CursorUtils.getString(cr, "TITLE");
-                    DiaryInfo dInfo = new DiaryInfo(date, title);
+                    DiaryInfo dInfo = new DiaryInfo(id, date, title);
                     diaryInfos.add(dInfo);
-                }while(cr.moveToNext());
+                } while (cr.moveToNext());
             }
         } finally {
-            if(cr != null){
+            if (cr != null) {
                 cr.close();
                 cr = null;
             }
@@ -84,5 +91,36 @@ public class DiaryDbAccessor {
             }
         }
         return diaryInfos;
+    }
+
+    public static DiaryModel loadDiary(Context context, int id) {
+        DiaryDbOpenHelper helper = new DiaryDbOpenHelper(context);
+        SimpleDateFormat format = new SimpleDateFormat("yyyyMMdd");
+        DiaryModel diaryModel = new DiaryModel();
+
+        SQLiteDatabase db = null;
+        Cursor cr = null;
+        try {
+            db = helper.getReadableDatabase();
+            cr = db.query("T_DIARY", null, "ID=" + id, null, null, null, null);
+            if (cr.moveToFirst() && cr.getCount() == 1) {
+                try {
+                    diaryModel.date = format.parse(CursorUtils.getString(cr, "DATE"));
+                } catch (ParseException ex) {
+                }
+                diaryModel.title = CursorUtils.getString(cr, "TITLE");
+                diaryModel.note = CursorUtils.getString(cr, "NOTE");
+            }
+        } finally {
+            if (cr != null) {
+                cr.close();
+                cr = null;
+            }
+            if (db != null) {
+                db.close();
+                db = null;
+            }
+        }
+        return diaryModel;
     }
 }

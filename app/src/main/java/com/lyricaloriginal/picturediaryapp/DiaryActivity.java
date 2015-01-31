@@ -27,16 +27,6 @@ import java.util.Date;
  */
 public class DiaryActivity extends ActionBarActivity {
 
-    /**
-     * 絵日記オブジェクト。絵日記のデータを保持するためのクラス。
-     */
-    protected final class DiaryModel {
-        protected String title;
-        protected Date date;
-        protected String note;
-        protected File pictureFile;
-    }
-
     public static final String EXTRA_ID = "ID";
 
     private static final int NEW_DIARY_ID = -1; //  新規作成モードの時のIDの値。
@@ -70,7 +60,17 @@ public class DiaryActivity extends ActionBarActivity {
         _targetId = getIntent().getIntExtra(EXTRA_ID, NEW_DIARY_ID);
         if (savedInstanceState == null) {
             if (0 < _targetId) {
-                loadDiary(_targetId);
+                DiaryModel model = loadDiary(_targetId);
+                SimpleDateFormat format = new SimpleDateFormat("yyyy年MM月dd日");
+                String date = format.format(model.date);
+                TextView dateText = (TextView) findViewById(R.id.dateText);
+                dateText.setText(date);
+
+                EditText titleEditText = (EditText) findViewById(R.id.titleEditText);
+                titleEditText.setText(model.title);
+
+                EditText noteEditText = (EditText) findViewById(R.id.noteText);
+                noteEditText.setText(model.note);
             } else {
                 //  新規作成時は日付として「今日の日付」で補填する
                 Date now = new Date(System.currentTimeMillis());
@@ -136,7 +136,11 @@ public class DiaryActivity extends ActionBarActivity {
     }
 
     protected DiaryModel loadDiary(int targetId) {
-        return null;
+        DiaryModel model = DiaryDbAccessor.loadDiary(this, targetId);
+        if (model == null) {
+            throw new RuntimeException("指定したIDに対応する絵日記が存在しません。");
+        }
+        return model;
     }
 
     protected void saveDiary(DiaryModel model) {
