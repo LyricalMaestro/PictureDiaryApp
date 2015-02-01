@@ -1,11 +1,13 @@
-package com.lyricaloriginal.picturediaryapp;
+package com.lyricaloriginal.picturediaryapp.common;
 
 import android.database.Cursor;
+
+import java.io.IOException;
 
 /**
  * Created by LyricalMaestro on 15/01/27.
  */
-public class CursorUtils {
+public final class CursorUtils {
 
     private CursorUtils() {
 
@@ -59,5 +61,16 @@ public class CursorUtils {
         }
 
         return cr.getInt(index);
+    }
+
+    /**
+     * Cursorオブジェクトのクローズ処理を行います。
+     *
+     * @param cr Cursorオブジェクト
+     */
+    public static void close(Cursor cr) {
+        if (cr != null) {
+            cr.close();
+        }
     }
 }

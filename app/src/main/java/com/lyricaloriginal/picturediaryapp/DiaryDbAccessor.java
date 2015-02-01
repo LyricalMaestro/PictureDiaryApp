@@ -5,6 +5,8 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 
+import com.lyricaloriginal.picturediaryapp.common.CursorUtils;
+
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -82,7 +84,33 @@ public class DiaryDbAccessor {
             }
         }
         return 0 <= result;
+    }
 
+    /**
+     * 指定したIDの絵日記データを削除します。
+     *
+     * @param context
+     * @param id
+     * @return
+     */
+    public static boolean delete(Context context, int id) {
+        long result = -1;
+        DiaryDbOpenHelper helper = new DiaryDbOpenHelper(context);
+        SQLiteDatabase db = null;
+        try {
+            db = helper.getWritableDatabase();
+            db.beginTransaction();
+
+            result = db.delete("T_DIARY", "ID=" + id, null);
+            db.setTransactionSuccessful();
+        } finally {
+            if (db != null) {
+                db.endTransaction();
+                db.close();
+                db = null;
+            }
+        }
+        return 0 <= result;
     }
 
     /**
@@ -115,10 +143,7 @@ public class DiaryDbAccessor {
                 } while (cr.moveToNext());
             }
         } finally {
-            if (cr != null) {
-                cr.close();
-                cr = null;
-            }
+            CursorUtils.close(cr);
             if (db != null) {
                 db.close();
                 db = null;
@@ -146,10 +171,7 @@ public class DiaryDbAccessor {
                 diaryModel.note = CursorUtils.getString(cr, "NOTE");
             }
         } finally {
-            if (cr != null) {
-                cr.close();
-                cr = null;
-            }
+            CursorUtils.close(cr);
             if (db != null) {
                 db.close();
                 db = null;

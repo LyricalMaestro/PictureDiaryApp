@@ -1,5 +1,6 @@
 package com.lyricaloriginal.picturediaryapp;
 
+import android.app.DialogFragment;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
@@ -16,6 +17,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.gc.materialdesign.views.ButtonFloat;
+import com.lyricaloriginal.picturediaryapp.common.ConfirmDialogFragment;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -25,7 +27,7 @@ import java.util.Locale;
 /**
  * 絵日記の一覧を取得します。
  */
-public class DiaryListActivity extends ActionBarActivity {
+public class DiaryListActivity extends ActionBarActivity implements ConfirmDialogFragment.Listener {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -53,6 +55,19 @@ public class DiaryListActivity extends ActionBarActivity {
                 startActivityForResult(intent, 0);
             }
         });
+        listView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
+            @Override
+            public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
+                DiaryInfo dInfo = (DiaryInfo) parent.getAdapter().getItem(position);
+
+                Bundle bundle = new Bundle();
+                bundle.putInt("ID", dInfo.getId());
+                DialogFragment dialog = ConfirmDialogFragment.newInstance(
+                        "選択した日記を削除します。よろしいですか？", bundle);
+                dialog.show(getFragmentManager(), dialog.getClass().getName());
+                return true;
+            }
+        });
 
 
         loadDiaryInfo();
@@ -63,6 +78,16 @@ public class DiaryListActivity extends ActionBarActivity {
         super.onActivityResult(requestCode, resultCode, data);
 
         if (requestCode == 0 && resultCode == RESULT_OK) {
+            loadDiaryInfo();
+        }
+    }
+
+    @Override
+    public void onClickOkBtnListener(String tag, Bundle bundle) {
+        int id = bundle.getInt("ID");
+        boolean result = DiaryDbAccessor.delete(this, id);
+        if (result) {
+            Toast.makeText(this, "削除完了", Toast.LENGTH_LONG).show();
             loadDiaryInfo();
         }
     }
