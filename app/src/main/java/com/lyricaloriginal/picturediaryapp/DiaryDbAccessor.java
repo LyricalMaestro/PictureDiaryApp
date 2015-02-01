@@ -4,9 +4,15 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.os.Environment;
+import android.text.TextUtils;
 
 import com.lyricaloriginal.picturediaryapp.common.CursorUtils;
 
+import org.apache.commons.io.FileUtils;
+
+import java.io.File;
+import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -41,7 +47,14 @@ public class DiaryDbAccessor {
             cv.put("TITLE", model.title);
             cv.put("DATE", format.format(model.date));
             cv.put("NOTE", model.note);
+            cv.put("PICTURE_FILE",
+                    model.pictureFile != null ? model.pictureFile.getName() : "");
             result = db.insert("T_DIARY", "", cv);
+
+            if (0 <= result && model.pictureFile != null) {
+                result = copyPictureFile(context, (int) result, model.pictureFile);
+            }
+
             db.setTransactionSuccessful();
         } finally {
             if (db != null) {
@@ -74,7 +87,16 @@ public class DiaryDbAccessor {
             cv.put("TITLE", model.title);
             cv.put("DATE", format.format(model.date));
             cv.put("NOTE", model.note);
-            result = db.update("T_DIARY", cv, "ID=" + id, null);
+            cv.put("PICTURE_FILE",
+                    model.pictureFile != null ? model.pictureFile.getName() : "");
+            result = db.update("T_DIARY", cv, "_id=" + id, null);
+
+            if (0 <= result && model.pictureFile != null) {
+                result = copyPictureFile(context, id, model.pictureFile);
+            } else if (0 <= result) {
+                result = deletePic(context, id);
+            }
+
             db.setTransactionSuccessful();
         } finally {
             if (db != null) {
@@ -101,7 +123,10 @@ public class DiaryDbAccessor {
             db = helper.getWritableDatabase();
             db.beginTransaction();
 
-            result = db.delete("T_DIARY", "ID=" + id, null);
+            result = db.delete("T_DIARY", "_id=" + id, null);
+            if (0 <= result) {
+                result = deletePic(context, id);
+            }
             db.setTransactionSuccessful();
         } finally {
             if (db != null) {
@@ -131,7 +156,7 @@ public class DiaryDbAccessor {
             cr = db.query("T_DIARY", null, null, null, null, null, "DATE");
             if (cr.moveToFirst()) {
                 do {
-                    int id = CursorUtils.getInt(cr, "ID");
+                    int id = CursorUtils.getInt(cr, "_id");
                     Date date = null;
                     try {
                         date = format.parse(CursorUtils.getString(cr, "DATE"));
@@ -161,7 +186,7 @@ public class DiaryDbAccessor {
         Cursor cr = null;
         try {
             db = helper.getReadableDatabase();
-            cr = db.query("T_DIARY", null, "ID=" + id, null, null, null, null);
+            cr = db.query("T_DIARY", null, "_id=" + id, null, null, null, null);
             if (cr.moveToFirst() && cr.getCount() == 1) {
                 try {
                     diaryModel.date = format.parse(CursorUtils.getString(cr, "DATE"));
@@ -169,6 +194,10 @@ public class DiaryDbAccessor {
                 }
                 diaryModel.title = CursorUtils.getString(cr, "TITLE");
                 diaryModel.note = CursorUtils.getString(cr, "NOTE");
+                String picFilename = CursorUtils.getString(cr, "PICTURE_FILE");
+                if (!TextUtils.isEmpty(picFilename)) {
+                    diaryModel.pictureFile = new File(getPicDir(context, id), picFilename);
+                }
             }
         } finally {
             CursorUtils.close(cr);
@@ -178,5 +207,44 @@ public class DiaryDbAccessor {
             }
         }
         return diaryModel;
+    }
+
+    private static File getPicDir(Context context, int id) {
+        return new File(context.
+                getExternalFilesDir(Environment.DIRECTORY_DCIM),
+                String.valueOf(id));
+    }
+
+    private static int copyPictureFile(Context context, int id, File orgFile) {
+        File destDir = getPicDir(context, id);
+        if (!destDir.exists()) {
+            destDir.mkdirs();
+        }
+
+        File destFile = new File(destDir, orgFile.getName());
+        int result = -1;
+        try {
+            FileUtils.copyFile(orgFile, destFile);
+            result = 1;
+        } catch (IOException ex) {
+            ex.printStackTrace();
+        }
+        return result;
+    }
+
+    private static int deletePic(Context context, int id) {
+        File destDir = getPicDir(context, id);
+        if (!destDir.exists()) {
+            return 1;
+        }
+
+        int result = -1;
+        try {
+            FileUtils.deleteDirectory(destDir);
+            result = 1;
+        } catch (IOException ex) {
+            ex.printStackTrace();
+        }
+        return result;
     }
 }
