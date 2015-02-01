@@ -1,10 +1,10 @@
 package com.lyricaloriginal.picturediaryapp;
 
+import android.app.DialogFragment;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
-import android.os.PersistableBundle;
 import android.provider.MediaStore;
 import android.support.v7.app.ActionBarActivity;
 import android.support.v7.widget.Toolbar;
@@ -16,16 +16,17 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.lyricaloriginal.picturediaryapp.common.DatePickerDialogFragment;
+
 import java.io.File;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.Calendar;
 import java.util.Date;
 
 /**
  * 絵日記を作成する画面に対応するActivityです。
  */
-public class DiaryActivity extends ActionBarActivity {
+public class DiaryActivity extends ActionBarActivity implements DatePickerDialogFragment.Listener {
 
     public static final String EXTRA_ID = "ID";
 
@@ -40,22 +41,8 @@ public class DiaryActivity extends ActionBarActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_diary);
 
-        ImageView imageView = (ImageView) findViewById(R.id.imageView);
-        imageView.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-
-                String filename = System.currentTimeMillis() + ".jpg";
-                File f = new File(getExternalFilesDir(Environment.DIRECTORY_DCIM), filename);
-                _uri = Uri.fromFile(f);
-                Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-                intent.putExtra(MediaStore.EXTRA_VIDEO_QUALITY, 1);
-                intent.putExtra(MediaStore.EXTRA_OUTPUT, _uri);
-                startActivityForResult(intent, 1);
-            }
-        });
-
         initToolbar();
+        setEvents();
 
         _targetId = getIntent().getIntExtra(EXTRA_ID, NEW_DIARY_ID);
         if (savedInstanceState == null) {
@@ -85,6 +72,7 @@ public class DiaryActivity extends ActionBarActivity {
             dateText.setText(date);
         }
     }
+
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
@@ -135,7 +123,49 @@ public class DiaryActivity extends ActionBarActivity {
         outState.putString("DATE", dateText.getText().toString());
     }
 
-    protected DiaryModel loadDiary(int targetId) {
+    @Override
+    public void onDateCommitted(String tag, int year, int monthOfYear, int dayOfMonth) {
+        Toast.makeText(this, "けってい" + year + monthOfYear + dayOfMonth, Toast.LENGTH_SHORT).show();
+
+        String txt = String.format("%1$04d年%2$02d月%3$02d日", year, monthOfYear + 1, dayOfMonth);
+        TextView dateText = (TextView) findViewById(R.id.dateText);
+        dateText.setText(txt);
+
+    }
+
+    private void setEvents() {
+        ImageView imageView = (ImageView) findViewById(R.id.imageView);
+        imageView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                String filename = System.currentTimeMillis() + ".jpg";
+                File f = new File(getExternalFilesDir(Environment.DIRECTORY_DCIM), filename);
+                _uri = Uri.fromFile(f);
+                Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+                intent.putExtra(MediaStore.EXTRA_VIDEO_QUALITY, 1);
+                intent.putExtra(MediaStore.EXTRA_OUTPUT, _uri);
+                startActivityForResult(intent, 1);
+            }
+        });
+
+        TextView txtView = (TextView) findViewById(R.id.dateText);
+        txtView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                TextView dateText = (TextView) findViewById(R.id.dateText);
+                String date = dateText.getText().toString();
+                int year = Integer.valueOf(date.substring(0, 4));
+                int monthOfYear = Integer.valueOf(date.substring(5, 7));
+                int dayOfMonth = Integer.valueOf(date.substring(8, 10));
+
+                DialogFragment dialog = DatePickerDialogFragment.newInstance(year, monthOfYear - 1, dayOfMonth);
+                dialog.show(getFragmentManager(), dialog.getClass().getName());
+            }
+        });
+    }
+
+    private DiaryModel loadDiary(int targetId) {
         DiaryModel model = DiaryDbAccessor.loadDiary(this, targetId);
         if (model == null) {
             throw new RuntimeException("指定したIDに対応する絵日記が存在しません。");
@@ -143,7 +173,7 @@ public class DiaryActivity extends ActionBarActivity {
         return model;
     }
 
-    protected void saveDiary(DiaryModel model) {
+    private void saveDiary(DiaryModel model) {
         boolean result = false;
         if (_targetId < 0) {
             result = DiaryDbAccessor.insert(this, model);
@@ -162,4 +192,5 @@ public class DiaryActivity extends ActionBarActivity {
         Toolbar toolBar = (Toolbar) findViewById(R.id.tool_bar);
         setSupportActionBar(toolBar);
     }
+
 }
