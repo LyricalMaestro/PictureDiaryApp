@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="pictureImportMenus">
+        <item>カメラで撮影</item>
+        <item>ギャラリーから取込</item>
+    </string-array>
+    <string-array name="pictureSelectedMenus">
+        <item>カメラで撮影</item>
+        <item>ギャラリーから取込</item>
+        <item>写真編集</item>
+        <item>写真削除</item>
+    </string-array>
+
+</resources>

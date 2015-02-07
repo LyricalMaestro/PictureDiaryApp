@@ -1,7 +1,9 @@
 package com.lyricaloriginal.picturediaryapp;
 
 import android.app.DialogFragment;
+import android.content.ContentResolver;
 import android.content.Intent;
+import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
@@ -14,14 +16,18 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.webkit.MimeTypeMap;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.lyricaloriginal.picturediaryapp.common.CursorUtils;
 import com.lyricaloriginal.picturediaryapp.common.DatePickerDialogFragment;
+import com.lyricaloriginal.picturediaryapp.common.SingleChoiceDialogFragment;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.FilenameUtils;
 
 import java.io.File;
 import java.io.IOException;
@@ -32,7 +38,8 @@ import java.util.Date;
 /**
  * 絵日記を作成する画面に対応するActivityです。
  */
-public class DiaryActivity extends ActionBarActivity implements DatePickerDialogFragment.Listener {
+public class DiaryActivity extends ActionBarActivity
+        implements DatePickerDialogFragment.Listener, SingleChoiceDialogFragment.Listener {
 
     public static final String EXTRA_ID = "ID";
 
@@ -55,32 +62,9 @@ public class DiaryActivity extends ActionBarActivity implements DatePickerDialog
             _targetId = getIntent().getIntExtra(EXTRA_ID, NEW_DIARY_ID);
             if (savedInstanceState == null) {
                 if (0 < _targetId) {
-                    DiaryModel model = loadDiary(_targetId);
-                    SimpleDateFormat format = new SimpleDateFormat("yyyy年MM月dd日");
-                    String date = format.format(model.date);
-                    TextView dateText = (TextView) findViewById(R.id.dateText);
-                    dateText.setText(date);
-
-                    EditText titleEditText = (EditText) findViewById(R.id.titleEditText);
-                    titleEditText.setText(model.title);
-
-                    EditText noteEditText = (EditText) findViewById(R.id.noteText);
-                    noteEditText.setText(model.note);
-
-                    if (model.pictureFile != null) {
-                        File pic = new File(getTempPicDir(), model.pictureFile.getName());
-                        FileUtils.copyFile(model.pictureFile, pic);
-                        _newFile = pic;
-                        ImageView imageView = (ImageView) findViewById(R.id.imageView);
-                        imageView.setImageURI(Uri.fromFile(_newFile));
-                    }
+                    setDataForNewMode();
                 } else {
-                    //  新規作成時は日付として「今日の日付」で補填する
-                    Date now = new Date(System.currentTimeMillis());
-                    SimpleDateFormat format = new SimpleDateFormat("yyyy年MM月dd日");
-                    String date = format.format(now);
-                    TextView dateText = (TextView) findViewById(R.id.dateText);
-                    dateText.setText(date);
+                    setDataForUpdateMode();
                 }
             } else {
                 String date = savedInstanceState.getString("DATE");
@@ -89,16 +73,16 @@ public class DiaryActivity extends ActionBarActivity implements DatePickerDialog
 
                 String pictureFilename = savedInstanceState.getString("PICTURE_FILENAME");
                 if (!TextUtils.isEmpty(pictureFilename)) {
-                    _newFile = new File(getTempPicDir(), pictureFilename);
+                    _newFile = new File(pictureFilename);
                     ImageView imageView = (ImageView) findViewById(R.id.imageView);
                     imageView.setImageURI(Uri.fromFile(_newFile));
                 }
+                _uri = savedInstanceState.getParcelable("URI");
             }
         } catch (Exception ex) {
             throw new RuntimeException(ex);
         }
     }
-
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
@@ -110,6 +94,13 @@ public class DiaryActivity extends ActionBarActivity implements DatePickerDialog
             imageView.setImageURI(uri);
             _newFile = new File(uri.getPath());
             _uri = null;
+        } else if (resultCode == RESULT_OK && requestCode == 2) {
+            Uri uri = data.getData();
+            ImageView imageView = (ImageView) findViewById(R.id.imageView);
+            imageView.setImageURI(uri);
+            getContentResolver().query(uri, new String[]{MediaStore.Images.ImageColumns.DATA},
+                    null, null, null);
+            _newFile = getFile(getContentResolver(), uri);
         }
     }
 
@@ -148,7 +139,7 @@ public class DiaryActivity extends ActionBarActivity implements DatePickerDialog
                 EditText noteText = (EditText) findViewById(R.id.noteText);
                 model.note = noteText.getEditableText().toString();
 
-                if(_newFile != null){
+                if (_newFile != null) {
                     model.pictureFile = _newFile;
                 }
 
@@ -166,7 +157,10 @@ public class DiaryActivity extends ActionBarActivity implements DatePickerDialog
         outState.putString("DATE", dateText.getText().toString());
 
         if (_newFile != null) {
-            outState.putString("PICTURE_FILENAME", _newFile.getName());
+            outState.putString("PICTURE_FILENAME", _newFile.getAbsolutePath());
+        }
+        if (_uri != null) {
+            outState.putParcelable("URI", _uri);
         }
     }
 
@@ -177,18 +171,64 @@ public class DiaryActivity extends ActionBarActivity implements DatePickerDialog
         dateText.setText(txt);
     }
 
+
+    @Override
+    public void onClick(String tag, int which, Bundle data) {
+        if (TextUtils.equals(tag, SingleChoiceDialogFragment.class.getName())) {
+            DialogFragment dialog = (DialogFragment) getFragmentManager().findFragmentByTag(tag);
+            dialog.dismiss();
+
+            if (which == 0) {
+                File f = new File(getTempPicDir(), System.currentTimeMillis() + ".jpg");
+                _uri = Uri.fromFile(f);
+
+                Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+                intent.putExtra(MediaStore.EXTRA_VIDEO_QUALITY, 1);
+                intent.putExtra(MediaStore.EXTRA_OUTPUT, _uri);
+                startActivityForResult(intent, 1);
+            } else if (which == 1) {
+                Intent intent = new Intent(Intent.ACTION_PICK);
+                intent.setType("image/*");
+                startActivityForResult(intent, 2);
+            } else if (which == 2) {
+            } else if (which == 3) {
+                ImageView imageView = (ImageView) findViewById(R.id.imageView);
+                imageView.setImageBitmap(null);
+                _newFile = null;
+            }
+        }
+    }
+
     private void setEvents() {
         ImageView imageView = (ImageView) findViewById(R.id.imageView);
         imageView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                if (_newFile == null) {
+                    CharSequence[] choice = getResources().getTextArray(R.array.pictureImportMenus);
+                    DialogFragment dialog = SingleChoiceDialogFragment.newInstance(choice, -1, null);
+                    dialog.show(getFragmentManager(), SingleChoiceDialogFragment.class.getName());
+                } else {
+                    Uri uri = Uri.fromFile(_newFile);
+                    String ext = FilenameUtils.getExtension(_newFile.getName());
+                    String mimeType = MimeTypeMap.getSingleton().getMimeTypeFromExtension(ext);
 
-                File f = new File(getTempPicDir(), System.currentTimeMillis() + ".jpg");
-                _uri = Uri.fromFile(f);
-                Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-                intent.putExtra(MediaStore.EXTRA_VIDEO_QUALITY, 1);
-                intent.putExtra(MediaStore.EXTRA_OUTPUT, _uri);
-                startActivityForResult(intent, 1);
+                    Intent intent = new Intent(Intent.ACTION_VIEW);
+                    intent.setDataAndType(uri, mimeType);
+                    startActivity(intent);
+                }
+            }
+        });
+        imageView.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                if (_newFile != null) {
+                    CharSequence[] choice = getResources().getTextArray(R.array.pictureSelectedMenus);
+                    DialogFragment dialog = SingleChoiceDialogFragment.newInstance(choice, -1, null);
+                    dialog.show(getFragmentManager(), SingleChoiceDialogFragment.class.getName());
+                    return true;
+                }
+                return false;
             }
         });
 
@@ -206,6 +246,37 @@ public class DiaryActivity extends ActionBarActivity implements DatePickerDialog
                 dialog.show(getFragmentManager(), dialog.getClass().getName());
             }
         });
+    }
+
+    private void setDataForUpdateMode() {
+        //  新規作成時は日付として「今日の日付」で補填する
+        Date now = new Date(System.currentTimeMillis());
+        SimpleDateFormat format = new SimpleDateFormat("yyyy年MM月dd日");
+        String date = format.format(now);
+        TextView dateText = (TextView) findViewById(R.id.dateText);
+        dateText.setText(date);
+    }
+
+    private void setDataForNewMode() throws IOException {
+        DiaryModel model = loadDiary(_targetId);
+        SimpleDateFormat format = new SimpleDateFormat("yyyy年MM月dd日");
+        String date = format.format(model.date);
+        TextView dateText = (TextView) findViewById(R.id.dateText);
+        dateText.setText(date);
+
+        EditText titleEditText = (EditText) findViewById(R.id.titleEditText);
+        titleEditText.setText(model.title);
+
+        EditText noteEditText = (EditText) findViewById(R.id.noteText);
+        noteEditText.setText(model.note);
+
+        if (model.pictureFile != null) {
+            File pic = new File(getTempPicDir(), model.pictureFile.getName());
+            FileUtils.copyFile(model.pictureFile, pic);
+            _newFile = pic;
+            ImageView imageView = (ImageView) findViewById(R.id.imageView);
+            imageView.setImageURI(Uri.fromFile(_newFile));
+        }
     }
 
     private DiaryModel loadDiary(int targetId) {
@@ -231,14 +302,32 @@ public class DiaryActivity extends ActionBarActivity implements DatePickerDialog
         }
     }
 
+
+    private File getFile(ContentResolver resolver, Uri uri) {
+        File f = null;
+        Cursor cr = null;
+        try {
+            cr = resolver.query(uri, new String[]{MediaStore.Images.ImageColumns.DATA},
+                    null, null, null);
+            if (cr.moveToFirst()) {
+                do {
+                    f = new File(cr.getString(0));
+                } while (cr.moveToNext());
+            }
+        } finally {
+            CursorUtils.close(cr);
+        }
+        return f;
+    }
+
     private void initToolbar() {
         Toolbar toolBar = (Toolbar) findViewById(R.id.tool_bar);
         setSupportActionBar(toolBar);
     }
 
     private File getTempPicDir() {
-        File dir =  new File(getExternalFilesDir(Environment.DIRECTORY_DCIM), "Temp");
-        if(!dir.exists()){
+        File dir = new File(getExternalFilesDir(Environment.DIRECTORY_DCIM), "Temp");
+        if (!dir.exists()) {
             dir.mkdirs();
         }
         return dir;
