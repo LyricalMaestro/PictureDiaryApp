@@ -8,6 +8,8 @@ import android.os.Handler;
 import android.support.v7.app.ActionBarActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
@@ -90,6 +92,23 @@ public class DiaryListActivity extends ActionBarActivity implements ConfirmDialo
             Toast.makeText(this, "削除完了", Toast.LENGTH_LONG).show();
             loadDiaryInfo();
         }
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        menu.add(0, 0, 0, "オープンソースライセンス");
+        return super.onCreateOptionsMenu(menu);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        if (item.getItemId() == 0) {
+            Intent intent = new Intent(this, OssActivity.class);
+            startActivity(intent);
+            return true;
+        }
+
+        return super.onOptionsItemSelected(item);
     }
 
     private void initToolbar() {
