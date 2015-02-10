@@ -5,6 +5,6 @@ AndroidStudioのプロジェクトをそのままpushしてます。
 
 # 使用させていただいているライブラリ。
 
-MaterialDesign
+・apache-common-2.4.jar
+・MaterialDesignLibrary
 https://github.com/navasmdc/MaterialDesignLibrary
-(あ、あとでApacheライセンスの対応しときます。。）
